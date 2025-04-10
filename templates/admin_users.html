@@ -50,7 +50,6 @@
                                 <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <a href="#" class="btn btn-outline-primary">Edit</a>
                                         {% if user.id != current_user.id %}
                                             <button type="button" class="btn btn-outline-danger admin-delete-user-btn" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}">Delete</button>
                                         {% else %}

@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, flash, request, jsonify, session, abort
 from flask_login import login_user, logout_user, current_user, login_required
-from datetime import datetime, date
+from datetime import datetime, date, time
 from functools import wraps
 from app import app, db
 from models import User, PropertyListing, Appointment, Review, Payment, Neighbourhood, SavedListing
@@ -419,10 +419,11 @@ def schedule_appointment(property_id):
         appt_time = datetime.strptime(request.form.get('time'), '%H:%M').time()
         message = request.form.get('message')
         
+        appointment_datetime = datetime.combine(appt_date, appt_time)
         
         appointment = Appointment(
             date=appt_date,
-            time=appt_time,
+            time=appointment_datetime,
             message=message,
             property_id=property_id,
             tenant_id=current_user.id,
@@ -444,7 +445,7 @@ def update_appointment_status(appointment_id):
     property_listing = PropertyListing.query.get(appointment.property_id)
     
     
-    if not (current_user.id == property_listing.owner_id or current_user.id == appointment.tenant_id):
+    if not (current_user.id == property_listing.owner_id or current_user.id == appointment.tenant_id) and current_user.role != 'admin':
         flash('You do not have permission to update this appointment.', 'danger')
         return redirect(url_for('index'))
     
@@ -457,6 +458,8 @@ def update_appointment_status(appointment_id):
     
     if current_user.role == 'owner':
         return redirect(url_for('dashboard_owner'))
+    elif current_user.role == 'admin':
+        return redirect(url_for('admin_portal'))
     else:
         return redirect(url_for('dashboard_tenant'))
 

@@ -7,13 +7,16 @@ from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_login import LoginManager
 
+from dotenv import load_dotenv
+
+logging.basicConfig(level=logging.DEBUG)
+load_dotenv()
+
 admin_username = os.getenv("ADMIN_USERNAME")
 admin_password = os.getenv("ADMIN_PASSWORD")
 admin_email = os.getenv("ADMIN_EMAIL")
 db_username = os.getenv("DB_USERNAME")
 db_password = os.getenv("DB_PASSWORD")
-
-logging.basicConfig(level=logging.DEBUG)
 
 class Base(DeclarativeBase):
     pass
