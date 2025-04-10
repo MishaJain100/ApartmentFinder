@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Reviews - Apartment Finder{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_portal') }}">Admin Portal</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Reviews</li>
+        </ol>
+    </nav>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Reviews</h1>
+    </div>
+    
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Property</th>
+                            <th>Tenant</th>
+                            <th>Rating</th>
+                            <th>Comment</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for review in reviews %}
+                            <tr>
+                                <td>{{ review.id }}</td>
+                                <td>
+                                    <a href="{{ url_for('property_detail', property_id=review.property.id) }}">
+                                        {{ review.property.title }}
+                                    </a>
+                                </td>
+                                <td>{{ review.tenant.username }}</td>
+                                <td>
+                                    <div class="text-warning">
+                                        {% for i in range(5) %}
+                                            {% if i < review.rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if review.comment|length > 50 %}
+                                        {{ review.comment[:50] }}...
+                                    {% else %}
+                                        {{ review.comment }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ review.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#reviewModal{{ review.id }}">View</button>
+                                    
+                                    <div class="modal fade" id="reviewModal{{ review.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Review Details</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <h6>Property: {{ review.property.title }}</h6>
+                                                    <p>Tenant: {{ review.tenant.first_name }} {{ review.tenant.last_name }} ({{ review.tenant.email }})</p>
+                                                    <p>Rating: 
+                                                        <span class="text-warning">
+                                                            {% for i in range(5) %}
+                                                                {% if i < review.rating %}
+                                                                    <i class="fas fa-star"></i>
+                                                                {% else %}
+                                                                    <i class="far fa-star"></i>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </span>
+                                                    </p>
+                                                    <p>Comment: {{ review.comment }}</p>
+                                                    <p class="text-muted">Created: {{ review.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <form action="#" method="post" class="d-inline">
+                                                        <button type="submit" class="btn btn-danger">Delete Review</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

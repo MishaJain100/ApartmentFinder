@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Schedule a Viewing - {{ property.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('property_detail', property_id=property.id) }}">{{ property.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Schedule a Viewing</li>
+        </ol>
+    </nav>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h1 class="mb-4">Schedule a Viewing</h1>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="property-image" style="background-image: url('{% if property.get_image_list() %}{{ property.get_image_list()[0] }}{% else %}https://via.placeholder.com/300x200?text=No+Image{% endif %}'); height: 200px; background-size: cover; background-position: center; border-radius: 8px;"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>{{ property.title }}</h5>
+                            <p class="mb-2">
+                                <i class="fas fa-map-marker-alt me-1 text-muted"></i> 
+                                {{ property.address }}, {{ property.city }}, {{ property.state }}
+                            </p>
+                            <p class="mb-2">
+                                <i class="fas fa-dollar-sign me-1 text-muted"></i> 
+                                ${{ property.price|int }} per month
+                            </p>
+                            <p class="mb-0">
+                                <i class="fas fa-info-circle me-1 text-muted"></i>
+                                {{ property.bedrooms }} bed, {{ property.bathrooms }} bath, {{ property.area_sqft|int }} sqft
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <form action="{{ url_for('schedule_appointment', property_id=property.id) }}" method="post">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="date" class="form-label">Preferred Date</label>
+                                <input type="date" class="form-control" id="date" name="date" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="time" class="form-label">Preferred Time</label>
+                                <input type="time" class="form-control" id="time" name="time" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="message" class="form-label">Message to Owner (Optional)</label>
+                                <textarea class="form-control" id="message" name="message" rows="3" placeholder="Introduce yourself and let the owner know any specific questions you have about the property..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mt-4">
+                            <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i>About Appointments</h5>
+                            <p class="mb-0">The property owner will receive your appointment request and respond with a confirmation. You'll be notified once your appointment is confirmed.</p>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('property_detail', property_id=property.id) }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Schedule Appointment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+        document.getElementById('date').min = tomorrowStr;
+
+        document.getElementById('time').value = '10:00';
+    });
+</script>
+{% endblock %}

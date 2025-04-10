@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ neighbourhood.name }} Neighbourhood - Apartment Finder{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('property_list') }}">Properties</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ neighbourhood.name }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <h1 class="mb-4">{{ neighbourhood.name }}</h1>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">About This Neighbourhood</h5>
+                    <p>{{ neighbourhood.description or 'No description available for this neighbourhood.' }}</p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h5>Ratings</h5>
+                            <div class="neighbourhood-rating">
+                                <div class="neighbourhood-rating-label">Overall:</div>
+                                <div class="neighbourhood-rating-stars">
+                                    {% set overall = neighbourhood.get_overall_rating() %}
+                                    {% for i in range(5) %}
+                                        {% if i < overall|int %}
+                                            <i class="fas fa-star"></i>
+                                        {% elif i < overall and i+1 > overall %}
+                                            <i class="fas fa-star-half-alt"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-2">{{ overall|round(1) }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="neighbourhood-rating">
+                                <div class="neighbourhood-rating-label">Safety:</div>
+                                <div class="neighbourhood-rating-stars">
+                                    {% for i in range(5) %}
+                                        {% if i < neighbourhood.safety_rating|int %}
+                                            <i class="fas fa-star"></i>
+                                        {% elif i < neighbourhood.safety_rating and i+1 > neighbourhood.safety_rating %}
+                                            <i class="fas fa-star-half-alt"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-2">{{ neighbourhood.safety_rating|round(1) }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="neighbourhood-rating">
+                                <div class="neighbourhood-rating-label">Schools:</div>
+                                <div class="neighbourhood-rating-stars">
+                                    {% for i in range(5) %}
+                                        {% if i < neighbourhood.schools_rating|int %}
+                                            <i class="fas fa-star"></i>
+                                        {% elif i < neighbourhood.schools_rating and i+1 > neighbourhood.schools_rating %}
+                                            <i class="fas fa-star-half-alt"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-2">{{ neighbourhood.schools_rating|round(1) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="neighbourhood-rating">
+                                <div class="neighbourhood-rating-label">Transportation:</div>
+                                <div class="neighbourhood-rating-stars">
+                                    {% for i in range(5) %}
+                                        {% if i < neighbourhood.transportation_rating|int %}
+                                            <i class="fas fa-star"></i>
+                                        {% elif i < neighbourhood.transportation_rating and i+1 > neighbourhood.transportation_rating %}
+                                            <i class="fas fa-star-half-alt"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-2">{{ neighbourhood.transportation_rating|round(1) }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="neighbourhood-rating">
+                                <div class="neighbourhood-rating-label">Shopping:</div>
+                                <div class="neighbourhood-rating-stars">
+                                    {% for i in range(5) %}
+                                        {% if i < neighbourhood.shopping_rating|int %}
+                                            <i class="fas fa-star"></i>
+                                        {% elif i < neighbourhood.shopping_rating and i+1 > neighbourhood.shopping_rating %}
+                                            <i class="fas fa-star-half-alt"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-2">{{ neighbourhood.shopping_rating|round(1) }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="neighbourhood-rating">
+                                <div class="neighbourhood-rating-label">Dining:</div>
+                                <div class="neighbourhood-rating-stars">
+                                    {% for i in range(5) %}
+                                        {% if i < neighbourhood.dining_rating|int %}
+                                            <i class="fas fa-star"></i>
+                                        {% elif i < neighbourhood.dining_rating and i+1 > neighbourhood.dining_rating %}
+                                            <i class="fas fa-star-half-alt"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-2">{{ neighbourhood.dining_rating|round(1) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Neighbourhood Features</h5>
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-graduation-cap fa-2x text-primary mb-2"></i>
+                                <h6>Education</h6>
+                                <p class="small text-muted">Schools and educational facilities in the area</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-bus fa-2x text-primary mb-2"></i>
+                                <h6>Transportation</h6>
+                                <p class="small text-muted">Public transport and connectivity</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-utensils fa-2x text-primary mb-2"></i>
+                                <h6>Dining</h6>
+                                <p class="small text-muted">Restaurants and culinary experiences</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-shopping-cart fa-2x text-primary mb-2"></i>
+                                <h6>Shopping</h6>
+                                <p class="small text-muted">Retail outlets and shopping centers</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-hospital fa-2x text-primary mb-2"></i>
+                                <h6>Healthcare</h6>
+                                <p class="small text-muted">Hospitals and medical facilities</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-tree fa-2x text-primary mb-2"></i>
+                                <h6>Recreation</h6>
+                                <p class="small text-muted">Parks and recreational spaces</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Properties in {{ neighbourhood.name }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if properties %}
+                        <div class="list-group list-group-flush">
+                            {% for property in properties %}
+                                <a href="{{ url_for('property_detail', property_id=property.id) }}" class="list-group-item list-group-item-action px-0 py-3 border-bottom">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0">
+                                            <div style="width: 80px; height: 60px; background-image: url('{% if property.get_image_list() %}{{ property.get_image_list()[0] }}{% else %}https://via.placeholder.com/80x60?text=No+Image{% endif %}'); background-size: cover; background-position: center; border-radius: 4px;"></div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="mb-1">{{ property.title }}</h6>
+                                            <p class="mb-1 text-muted small">{{ property.bedrooms }} bed, {{ property.bathrooms }} bath</p>
+                                            <div class="fw-bold text-primary">${{ property.price|int }}/mo</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="mb-0">No properties available in this neighbourhood.</p>
+                    {% endif %}
+                </div>
+                {% if properties %}
+                    <div class="card-footer text-center">
+                        <a href="{{ url_for('property_list', location=neighbourhood.name) }}" class="btn btn-outline-primary btn-sm">View All Properties</a>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Nearby Amenities</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item px-0">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-graduation-cap text-primary me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Schools</h6>
+                                    <p class="mb-0 small text-muted">Several schools within 2 miles</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item px-0">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-shopping-cart text-primary me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Shopping Centers</h6>
+                                    <p class="mb-0 small text-muted">Retail options within walking distance</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item px-0">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-bus text-primary me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Public Transportation</h6>
+                                    <p class="mb-0 small text-muted">Bus stops and transit options nearby</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item px-0">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-utensils text-primary me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Restaurants</h6>
+                                    <p class="mb-0 small text-muted">Various dining options in the area</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item px-0">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-tree text-primary me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Parks</h6>
+                                    <p class="mb-0 small text-muted">Green spaces for recreation</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

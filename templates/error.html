@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ error_code }} Error - Apartment Finder{% endblock %}
+
+{% block content %}
+<div class="container my-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="error-container">
+                <h1 class="display-1 text-primary fw-bold">{{ error_code }}</h1>
+                <h2 class="mb-4">{{ error_message }}</h2>
+                <p class="lead mb-4">We can't find the page you're looking for. It might have been removed, renamed, or is temporarily unavailable.</p>
+                <div>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg me-2">
+                        <i class="fas fa-home me-2"></i> Go Home
+                    </a>
+                    <a href="{{ url_for('property_list') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-search me-2"></i> Browse Properties
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

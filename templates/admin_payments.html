@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Payments - Apartment Finder{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_portal') }}">Admin Portal</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Payments</li>
+        </ol>
+    </nav>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Payments</h1>
+    </div>
+    
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Property</th>
+                            <th>User</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Transaction ID</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                            <tr>
+                                <td>{{ payment.id }}</td>
+                                <td>
+                                    <a href="{{ url_for('property_detail', property_id=payment.property_id) }}">
+                                        {{ payment.property_listing.title }}
+                                    </a>
+                                </td>
+                                <td>{{ payment.user.username }}</td>
+                                <td>{{ payment.payment_type|replace('_', ' ')|capitalize }}</td>
+                                <td>${{ payment.amount|round(2) }}</td>
+                                <td>
+                                    <span class="badge {% if payment.status == 'pending' %}bg-warning{% elif payment.status == 'completed' %}bg-success{% elif payment.status == 'failed' %}bg-danger{% elif payment.status == 'refunded' %}bg-info{% endif %}">
+                                        {{ payment.status|capitalize }}
+                                    </span>
+                                </td>
+                                <td>{{ payment.transaction_id }}</td>
+                                <td>{{ payment.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#paymentModal{{ payment.id }}">
+                                        View
+                                    </button>
+
+                                    <div class="modal fade" id="paymentModal{{ payment.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Payment Details</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <h6>Payment #{{ payment.id }}</h6>
+                                                    <p><strong>Property:</strong> {{ payment.property_listing.title }}</p>
+                                                    <p><strong>User:</strong> {{ payment.user.first_name }} {{ payment.user.last_name }} ({{ payment.user.email }})</p>
+                                                    <p><strong>Payment Type:</strong> {{ payment.payment_type|replace('_', ' ')|capitalize }}</p>
+                                                    <p><strong>Amount:</strong> ${{ payment.amount|round(2) }}</p>
+                                                    <p><strong>Status:</strong> 
+                                                        <span class="badge {% if payment.status == 'pending' %}bg-warning{% elif payment.status == 'completed' %}bg-success{% elif payment.status == 'failed' %}bg-danger{% elif payment.status == 'refunded' %}bg-info{% endif %}">
+                                                            {{ payment.status|capitalize }}
+                                                        </span>
+                                                    </p>
+                                                    <p><strong>Transaction ID:</strong> {{ payment.transaction_id }}</p>
+                                                    <p><strong>Date:</strong> {{ payment.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <div class="dropdown d-inline">
+                                                        <button class="btn btn-primary dropdown-toggle" type="button" id="paymentStatusDropdown{{ payment.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                            Update Status
+                                                        </button>
+                                                        <ul class="dropdown-menu" aria-labelledby="paymentStatusDropdown{{ payment.id }}">
+                                                            <li>
+                                                                <form action="#" method="post" class="dropdown-item">
+                                                                    <input type="hidden" name="status" value="completed">
+                                                                    <button type="submit" class="btn btn-link p-0 text-decoration-none">Mark as Completed</button>
+                                                                </form>
+                                                            </li>
+                                                            <li>
+                                                                <form action="#" method="post" class="dropdown-item">
+                                                                    <input type="hidden" name="status" value="refunded">
+                                                                    <button type="submit" class="btn btn-link p-0 text-decoration-none">Mark as Refunded</button>
+                                                                </form>
+                                                            </li>
+                                                            <li>
+                                                                <form action="#" method="post" class="dropdown-item">
+                                                                    <input type="hidden" name="status" value="failed">
+                                                                    <button type="submit" class="btn btn-link p-0 text-decoration-none">Mark as Failed</button>
+                                                                </form>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

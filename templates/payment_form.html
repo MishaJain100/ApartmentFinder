@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Make a Payment - {{ property.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('property_detail', property_id=property.id) }}">{{ property.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Make a Payment</li>
+        </ol>
+    </nav>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h1 class="mb-4">Make a Payment</h1>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="property-image" style="background-image: url('{% if property.get_image_list() %}{{ property.get_image_list()[0] }}{% else %}https://via.placeholder.com/300x200?text=No+Image{% endif %}'); height: 200px; background-size: cover; background-position: center; border-radius: 8px;"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>{{ property.title }}</h5>
+                            <p class="mb-2">
+                                <i class="fas fa-map-marker-alt me-1 text-muted"></i> 
+                                {{ property.address }}, {{ property.city }}, {{ property.state }}
+                            </p>
+                            <p class="mb-2">
+                                <i class="fas fa-dollar-sign me-1 text-muted"></i> 
+                                ${{ property.price|int }} per month
+                            </p>
+                            <p class="mb-0">
+                                <i class="fas fa-user me-1 text-muted"></i>
+                                Owner: {{ property.owner.first_name }} {{ property.owner.last_name }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <form id="payment-form" action="{{ url_for('payment_form', property_id=property.id) }}" method="post">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="payment_type" class="form-label">Payment Type</label>
+                                <select class="form-select" id="payment_type" name="payment_type" required>
+                                    <option value="">Select payment type</option>
+                                    <option value="booking_fee">Booking Fee</option>
+                                    <option value="security_deposit">Security Deposit</option>
+                                    <option value="first_month_rent">First Month's Rent</option>
+                                    <option value="application_fee">Application Fee</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="amount" class="form-label">Amount ($)</label>
+                                <input type="number" class="form-control" id="amount" name="amount" min="1" step="0.01" required>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mb-3">Payment Information</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="card-name" class="form-label">Name on Card</label>
+                                <input type="text" class="form-control" id="card-name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="card-number" class="form-label">Card Number</label>
+                                <input type="text" class="form-control" id="card-number" placeholder="•••• •••• •••• ••••" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="expiry-date" class="form-label">Expiration Date</label>
+                                <input type="text" class="form-control" id="expiry-date" placeholder="MM/YY" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="cvv" class="form-label">CVV</label>
+                                <input type="text" class="form-control" id="cvv" placeholder="•••" required>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mb-4">
+                            <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Secure Payment</h5>
+                            <p class="mb-0">This is a secure payment system. Your credit card information is encrypted and protected.</p>
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="terms" required>
+                            <label class="form-check-label" for="terms">
+                                I agree to the <a href="#">Terms and Conditions</a> and authorize the payment.
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('property_detail', property_id=property.id) }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Process Payment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        const paymentTypeSelect = document.getElementById('payment_type');
+        const amountInput = document.getElementById('amount');
+        
+        paymentTypeSelect.addEventListener('change', function() {
+            const propertyPrice = parseFloat("{{ property.price }}");
+            
+            switch(this.value) {
+                case 'booking_fee':
+                    amountInput.value = 100;
+                    break;
+                case 'security_deposit':
+                    amountInput.value = propertyPrice;
+                    break;
+                case 'first_month_rent':
+                    amountInput.value = propertyPrice;
+                    break;
+                case 'application_fee':
+                    amountInput.value = 50;
+                    break;
+                default:
+                    amountInput.value = '';
+            }
+        });
+        
+        const cardNumberInput = document.getElementById('card-number');
+        cardNumberInput.addEventListener('input', function(e) {
+            const value = e.target.value.replace(/\D/g, '').substring(0, 16);
+            const parts = [];
+            
+            for (let i = 0; i < value.length; i += 4) {
+                parts.push(value.substring(i, i + 4));
+            }
+            
+            if (parts.length) {
+                e.target.value = parts.join(' ');
+            }
+        });
+        
+        const expiryInput = document.getElementById('expiry-date');
+        expiryInput.addEventListener('input', function(e) {
+            const value = e.target.value.replace(/\D/g, '').substring(0, 4);
+            
+            if (value.length > 2) {
+                e.target.value = value.substring(0, 2) + '/' + value.substring(2);
+            } else {
+                e.target.value = value;
+            }
+        });
+        
+        const cvvInput = document.getElementById('cvv');
+        cvvInput.addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
+        });
+    });
+</script>
+{% endblock %}

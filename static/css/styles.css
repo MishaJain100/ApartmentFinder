@@ -1,0 +1,352 @@
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: #3a86ff !important;
+}
+
+.hero {
+    background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8)), url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+    background-size: cover;
+    background-position: center;
+    padding: 120px 0;
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.hero h1 {
+    font-weight: 800;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    max-width: 800px;
+    margin: 0 auto 30px auto;
+}
+
+.property-card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+    height: 100%;
+}
+
+.property-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.property-image {
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+}
+
+.property-price {
+    font-weight: 700;
+    color: #3a86ff;
+    font-size: 1.3rem;
+}
+
+.property-address {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.property-features {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.property-feature-item {
+    display: flex;
+    align-items: center;
+}
+
+.property-feature-item i {
+    margin-right: 5px;
+    color: #6c757d;
+}
+
+.search-box {
+    background-color: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 40px;
+}
+
+.form-control {
+    border-radius: 5px;
+    padding: 12px 15px;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background-color: #3a86ff;
+    border-color: #3a86ff;
+    padding: 12px 25px;
+    font-weight: 600;
+    border-radius: 5px;
+}
+
+.btn-primary:hover {
+    background-color: #2876f9;
+    border-color: #2876f9;
+}
+
+.btn-outline-primary {
+    color: #3a86ff;
+    border-color: #3a86ff;
+}
+
+.btn-outline-primary:hover {
+    background-color: #3a86ff;
+    color: white;
+}
+
+footer {
+    background-color: #f1f3f5;
+    padding: 40px 0;
+    margin-top: 80px;
+}
+
+footer h5 {
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+footer ul {
+    list-style: none;
+    padding: 0;
+}
+
+footer ul li {
+    margin-bottom: 10px;
+}
+
+footer ul li a {
+    color: #495057;
+    text-decoration: none;
+}
+
+footer ul li a:hover {
+    color: #3a86ff;
+    text-decoration: underline;
+}
+
+.copyright {
+    background-color: #e9ecef;
+    padding: 15px 0;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.dashboard-stats {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.dashboard-stat-item {
+    text-align: center;
+    padding: 15px;
+}
+
+.dashboard-stat-item .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #3a86ff;
+}
+
+.dashboard-stat-item .stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.property-details-main {
+    background-color: white;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.property-details-sidebar {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.property-details-title {
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.property-details-image {
+    height: 400px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.amenity-tag {
+    display: inline-block;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    font-size: 0.85rem;
+    padding: 5px 10px;
+    border-radius: 20px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.review-item {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+.review-rating {
+    color: #ffc107;
+    margin-bottom: 10px;
+}
+
+.review-author {
+    font-weight: 700;
+}
+
+.review-date {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.neighbourhood-rating {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.neighbourhood-rating-label {
+    width: 150px;
+    color: #6c757d;
+}
+
+.neighbourhood-rating-stars {
+    color: #ffc107;
+}
+
+.appointment-item {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
+.appointment-property {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.appointment-date {
+    background-color: #f8f9fa;
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    margin: 10px 0;
+}
+
+.appointment-status {
+    font-weight: 600;
+}
+
+.appointment-status.pending {
+    color: #fd7e14;
+}
+
+.appointment-status.confirmed {
+    color: #20c997;
+}
+
+.appointment-status.cancelled {
+    color: #dc3545;
+}
+
+.appointment-status.completed {
+    color: #198754;
+}
+
+.admin-card {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.admin-card-icon {
+    font-size: 3rem;
+    color: #3a86ff;
+    margin-bottom: 15px;
+}
+
+.admin-card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.admin-card-label {
+    font-size: 1rem;
+    color: #6c757d;
+}
+
+.rating-star i.fas {
+    color: #ffc107;
+}
+
+.rating-star i.far {
+    color: #ccc;
+}
+
+.rating-star i {
+    transition: color 0.2s ease-in-out;
+}
+
+@media (max-width: 768px) {
+    .hero {
+        padding: 80px 0;
+    }
+    
+    .property-details-image {
+        height: 250px;
+    }
+}

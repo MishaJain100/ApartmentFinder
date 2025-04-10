@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Properties - Apartment Finder{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_portal') }}">Admin Portal</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Properties</li>
+        </ol>
+    </nav>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Properties</h1>
+    </div>
+    
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Owner</th>
+                            <th>Location</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for property in properties %}
+                            <tr>
+                                <td>{{ property.id }}</td>
+                                <td>
+                                    <a href="{{ url_for('property_detail', property_id=property.id) }}">
+                                        {{ property.title }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {{ property.owner.username }}
+                                </td>
+                                <td>{{ property.city }}, {{ property.state }}</td>
+                                <td>${{ property.price|int }}</td>
+                                <td>
+                                    <span class="badge {% if property.is_available %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if property.is_available %}Available{% else %}Not Available{% endif %}
+                                    </span>
+                                </td>
+                                <td>{{ property.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('property_detail', property_id=property.id) }}" class="btn btn-outline-primary">View</a>
+                                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deletePropertyModal{{ property.id }}">Delete</button>
+                                    </div>
+
+                                    <div class="modal fade" id="deletePropertyModal{{ property.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Confirm Property Deletion</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to delete the property "<strong>{{ property.title }}</strong>"?</p>
+                                                    <div class="alert alert-warning">
+                                                        <strong>Warning:</strong> This will delete all associated appointments, reviews, and saved listings. This action cannot be undone.
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form action="{{ url_for('delete_property', property_id=property.id) }}" method="post">
+                                                        <button type="submit" class="btn btn-danger">Delete Property</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

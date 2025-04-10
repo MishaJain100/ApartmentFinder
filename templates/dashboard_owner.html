@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Owner Dashboard - Apartment Finder{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">Property Owner Dashboard</h1>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="dashboard-stats">
+                <div class="dashboard-stat-item">
+                    <div class="stat-value">{{ metrics.total_properties }}</div>
+                    <div class="stat-label">Total Properties</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dashboard-stats">
+                <div class="dashboard-stat-item">
+                    <div class="stat-value">{{ metrics.total_appointments }}</div>
+                    <div class="stat-label">Total Appointments</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dashboard-stats">
+                <div class="dashboard-stat-item">
+                    <div class="stat-value">{{ metrics.avg_rating|round(1) }}</div>
+                    <div class="stat-label">Average Rating</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="list-group mb-4">
+                <a href="#my-properties" class="list-group-item list-group-item-action active">My Properties</a>
+                <a href="#appointments" class="list-group-item list-group-item-action">Appointment Requests</a>
+                <a href="{{ url_for('add_property') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-plus-circle me-2"></i> Add New Property
+                </a>
+                <a href="{{ url_for('user_profile') }}" class="list-group-item list-group-item-action">My Profile</a>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <section id="my-properties" class="mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>My Properties</h2>
+                    <a href="{{ url_for('add_property') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i> Add New Property
+                    </a>
+                </div>
+                
+                {% if listings %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Property</th>
+                                    <th>Price</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for listing in listings %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('property_detail', property_id=listing.id) }}">
+                                                {{ listing.title }}
+                                            </a>
+                                        </td>
+                                        <td>${{ listing.price|int }}</td>
+                                        <td>
+                                            <span class="badge {% if listing.is_available %}bg-success{% else %}bg-secondary{% endif %}">
+                                                {% if listing.is_available %}Available{% else %}Not Available{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>{{ listing.created_at.strftime('%b %d, %Y') }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ url_for('edit_property', property_id=listing.id) }}" class="btn btn-outline-primary">Edit</a>
+                                                <button type="button" class="btn btn-outline-danger delete-property-btn" data-bs-toggle="modal" data-bs-target="#deletePropertyModal{{ listing.id }}">Delete</button>
+                                            </div>
+
+                                            <div class="modal fade" id="deletePropertyModal{{ listing.id }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Confirm Deletion</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>Are you sure you want to delete the property "{{ listing.title }}"? This action cannot be undone.</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <form action="{{ url_for('delete_property', property_id=listing.id) }}" method="post">
+                                                                <button type="submit" class="btn btn-danger">Delete Property</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        You haven't listed any properties yet. <a href="{{ url_for('add_property') }}">Add your first property</a> to get started!
+                    </div>
+                {% endif %}
+            </section>
+
+            <section id="appointments">
+                <h2 class="mb-4">Appointment Requests</h2>
+                
+                {% if appointments %}
+                    <div class="accordion" id="appointmentsAccordion">
+                        {% for appointment in appointments %}
+                            <div class="accordion-item mb-3 border">
+                                <h2 class="accordion-header" id="heading{{ appointment.id }}">
+                                    <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ appointment.id }}" aria-expanded="{% if loop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ appointment.id }}">
+                                        <div class="d-flex w-100 justify-content-between align-items-center">
+                                            <div>
+                                                <strong>{{ appointment.property.title }}</strong> - 
+                                                {{ appointment.date.strftime('%b %d, %Y') }} at {{ appointment.time.strftime('%I:%M %p') }}
+                                            </div>
+                                            <span class="badge {% if appointment.status == 'pending' %}bg-warning{% elif appointment.status == 'confirmed' %}bg-success{% elif appointment.status == 'cancelled' %}bg-danger{% elif appointment.status == 'completed' %}bg-info{% endif %} ms-2">
+                                                {{ appointment.status|capitalize }}
+                                            </span>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ appointment.id }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" aria-labelledby="heading{{ appointment.id }}" data-bs-parent="#appointmentsAccordion">
+                                    <div class="accordion-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h5>Tenant Information</h5>
+                                                <p>
+                                                    <strong>Name:</strong> {{ appointment.tenant.first_name }} {{ appointment.tenant.last_name }}<br>
+                                                    <strong>Email:</strong> {{ appointment.tenant.email }}<br>
+                                                    <strong>Phone:</strong> {{ appointment.tenant.phone or 'Not provided' }}
+                                                </p>
+                                                
+                                                <h5>Message</h5>
+                                                <p>{{ appointment.message or 'No message provided.' }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h5>Update Status</h5>
+                                                {% if appointment.status == 'pending' %}
+                                                    <form action="{{ url_for('update_appointment_status', appointment_id=appointment.id) }}" method="post" class="appointment-status-form">
+                                                        <div class="mb-3">
+                                                            <select name="status" class="form-select">
+                                                                <option value="pending" {% if appointment.status == 'pending' %}selected{% endif %}>Pending</option>
+                                                                <option value="confirmed" {% if appointment.status == 'confirmed' %}selected{% endif %}>Confirm</option>
+                                                                <option value="cancelled" {% if appointment.status == 'cancelled' %}selected{% endif %}>Cancel</option>
+                                                            </select>
+                                                        </div>
+                                                        <button type="submit" class="btn btn-primary">Update Status</button>
+                                                    </form>
+                                                {% elif appointment.status == 'confirmed' %}
+                                                    <form action="{{ url_for('update_appointment_status', appointment_id=appointment.id) }}" method="post" class="appointment-status-form">
+                                                        <div class="mb-3">
+                                                            <select name="status" class="form-select">
+                                                                <option value="confirmed" {% if appointment.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                                                <option value="completed" {% if appointment.status == 'completed' %}selected{% endif %}>Complete</option>
+                                                                <option value="cancelled" {% if appointment.status == 'cancelled' %}selected{% endif %}>Cancel</option>
+                                                            </select>
+                                                        </div>
+                                                        <button type="submit" class="btn btn-primary">Update Status</button>
+                                                    </form>
+                                                {% else %}
+                                                    <p>This appointment is {{ appointment.status }}. No further action is needed.</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        You don't have any appointment requests yet.
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

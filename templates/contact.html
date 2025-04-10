@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us - Apartment Finder{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="text-center mb-5">Contact Us</h1>
+            
+            <div class="row mb-5">
+                <div class="col-md-4 text-center mb-4 mb-md-0">
+                    <div class="p-4 bg-light rounded">
+                        <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                        <h5>Email Us</h5>
+                        <p class="mb-0">info@apartmentfinder.com</p>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center mb-4 mb-md-0">
+                    <div class="p-4 bg-light rounded">
+                        <i class="fas fa-phone-alt fa-3x text-primary mb-3"></i>
+                        <h5>Call Us</h5>
+                        <p class="mb-0">(123) 456-7890</p>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="p-4 bg-light rounded">
+                        <i class="fas fa-map-marker-alt fa-3x text-primary mb-3"></i>
+                        <h5>Visit Us</h5>
+                        <p class="mb-0">123 Main Street<br>San Francisco, CA 94101</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="card-title text-center mb-4">Send Us a Message</h3>
+                    
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Your Name</label>
+                                <input type="text" class="form-control" id="name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Your Email</label>
+                                <input type="email" class="form-control" id="email" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="subject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="subject" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="message" class="form-label">Message</label>
+                                <textarea class="form-control" id="message" rows="5" required></textarea>
+                            </div>
+                            <div class="col-12 d-grid">
+                                <button type="submit" class="btn btn-primary">Send Message</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-5">
+        <h3 class="text-center mb-4">Frequently Asked Questions</h3>
+        
+        <div class="accordion" id="faqAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        How do I list my property on Apartment Finder?
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        To list your property, first create an account as a property owner. Once logged in, navigate to your dashboard and click on "Add Property." Fill out the property details form with accurate information and submit. Your listing will be active immediately.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingTwo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        How do I schedule a viewing for a property?
+                    </button>
+                </h2>
+                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        You need to create a tenant account to schedule viewings. After logging in, browse properties and click on "Schedule a Viewing" on any property detail page. Select your preferred date and time, and the property owner will receive your request. You'll be notified once your appointment is confirmed.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingThree">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        Is there a fee to use Apartment Finder?
+                    </button>
+                </h2>
+                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Apartment Finder is free for tenants to browse listings and schedule viewings. Property owners can list their first property for free, with a small fee for additional listings. We also offer premium features for both tenants and owners that require a subscription.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingFour">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                        How accurate is the neighbourhood information?
+                    </button>
+                </h2>
+                <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Our neighbourhood data is collected from multiple reliable sources and is updated regularly. Ratings are based on a combination of official statistics, resident surveys, and expert evaluations. While we strive for accuracy, we recommend visiting the neighbourhood in person before making a final decision.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingFive">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                        How do I report a problem with a listing?
+                    </button>
+                </h2>
+                <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        If you encounter a problem with a listing, you can report it by clicking the "Report" button on the property detail page. Alternatively, you can contact our support team through this contact form or by emailing support@apartmentfinder.com with details of the issue.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
