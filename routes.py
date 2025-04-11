@@ -6,7 +6,7 @@ from app import app, db
 from models import User, PropertyListing, Appointment, Review, Payment, Neighbourhood, SavedListing
 from utils import get_neighbourhood_data, generate_invoice
 import json
-
+from sqlalchemy import text
 
 def admin_required(f):
     @wraps(f)
@@ -26,10 +26,8 @@ def owner_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-
 @app.route('/')
-def index():
-    
+def index():    
     latest_listings = PropertyListing.query.filter_by(is_available=True).order_by(PropertyListing.created_at.desc()).limit(6).all()
     return render_template('index.html', listings=latest_listings)
 
@@ -41,38 +39,59 @@ def about():
 def contact():
     return render_template('contact.html')
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-    
+
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        
-        user = User.query.filter_by(email=email).first()
-        
-        if user and user.check_password(password):
-            login_user(user)
-            next_page = request.args.get('next')
-            
-            if user.role == 'tenant':
-                return redirect(next_page or url_for('dashboard_tenant'))
-            elif user.role == 'owner':
-                return redirect(next_page or url_for('dashboard_owner'))
-            elif user.role == 'admin':
-                return redirect(next_page or url_for('admin_portal'))
-            
+
+        connection = db.engine.connect()
+        result = connection.execute(
+            text("""
+                SELECT id, username, email, password_hash, role,
+                       first_name, last_name, phone, created_at
+                FROM app_user
+                WHERE email = :email
+            """),
+            {"email": email}
+        ).fetchone()
+        connection.close()
+
+        if result:
+            user = User()
+            user.id = result[0]
+            user.username = result[1]
+            user.email = result[2]
+            user.password_hash = result[3]
+            user.role = result[4]
+            user.first_name = result[5]
+            user.last_name = result[6]
+            user.phone = result[7]
+            user.created_at = result[8]
+
+            if user.check_password(password):
+                login_user(user)
+                next_page = request.args.get('next')
+
+                if user.role == 'tenant':
+                    return redirect(next_page or url_for('dashboard_tenant'))
+                elif user.role == 'owner':
+                    return redirect(next_page or url_for('dashboard_owner'))
+                elif user.role == 'admin':
+                    return redirect(next_page or url_for('admin_portal'))
+
         flash('Invalid email or password.', 'danger')
-    
+
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-    
+
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
@@ -82,34 +101,51 @@ def register():
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
         phone = request.form.get('phone')
-        
+
         if password != confirm_password:
             flash('Passwords do not match.', 'danger')
             return render_template('register.html')
-            
-        
-        user_exists = User.query.filter((User.username == username) | (User.email == email)).first()
-        if user_exists:
-            flash('Username or email already exists.', 'danger')
-            return render_template('register.html')
-        
-        
-        user = User(
-            username=username,
-            email=email,
-            role=role,
-            first_name=first_name,
-            last_name=last_name,
-            phone=phone
-        )
-        user.set_password(password)
-        
-        db.session.add(user)
-        db.session.commit()
-        
+
+        with db.engine.begin() as connection:
+            result = connection.execute(
+                text("""
+                    SELECT id FROM app_user 
+                    WHERE username = :username OR email = :email
+                """),
+                {"username": username, "email": email}
+            ).fetchone()
+
+            if result:
+                flash('Username or email already exists.', 'danger')
+                return render_template('register.html')
+
+            user = User()
+            user.set_password(password)
+
+            connection.execute(
+                text("""
+                    INSERT INTO app_user (
+                        username, email, password_hash, role,
+                        first_name, last_name, phone, created_at
+                    ) VALUES (
+                        :username, :email, :password_hash, :role,
+                        :first_name, :last_name, :phone, CURRENT_TIMESTAMP
+                    )
+                """),
+                {
+                    "username": username,
+                    "email": email,
+                    "password_hash": user.password_hash,
+                    "role": role,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "phone": phone
+                }
+            )
+
         flash('Registration successful! You can now log in.', 'success')
         return redirect(url_for('login'))
-    
+
     return render_template('register.html')
 
 @app.route('/logout')
@@ -180,7 +216,6 @@ def dashboard_owner():
 
 @app.route('/properties')
 def property_list():
-    
     location = request.args.get('location', '')
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
@@ -188,44 +223,42 @@ def property_list():
     property_type = request.args.get('property_type', '')
     sort = request.args.get('sort', 'newest')
     
-    
-    query = PropertyListing.query.filter_by(is_available=True)
-    
-    
+    query = PropertyListing.query.join(PropertyListing.neighbourhood).filter(PropertyListing.is_available == True)
+
     if location:
-        query = query.filter((PropertyListing.city.ilike(f'%{location}%')) | 
-                             (PropertyListing.state.ilike(f'%{location}%')) | 
-                             (PropertyListing.zip_code.ilike(f'%{location}%')))
-    
+        query = query.filter(
+            (PropertyListing.city.ilike(f'%{location}%')) |
+            (PropertyListing.state.ilike(f'%{location}%')) |
+            (PropertyListing.zip_code.ilike(f'%{location}%')) |
+            (Neighbourhood.name.ilike(f'%{location}%'))
+        )
+
     if min_price is not None:
         query = query.filter(PropertyListing.price >= min_price)
-    
+
     if max_price is not None:
         query = query.filter(PropertyListing.price <= max_price)
-    
+
     if bedrooms is not None:
         query = query.filter(PropertyListing.bedrooms >= bedrooms)
-    
+
     if property_type:
         query = query.filter(PropertyListing.property_type == property_type)
-    
-    
+
     if sort == 'price_asc':
         query = query.order_by(PropertyListing.price.asc())
     elif sort == 'price_desc':
         query = query.order_by(PropertyListing.price.desc())
     elif sort == 'bedrooms':
         query = query.order_by(PropertyListing.bedrooms.desc())
-    else:  
+    else:
         query = query.order_by(PropertyListing.created_at.desc())
-    
-    
+
     listings = query.all()
-    
-    
+
     property_types = db.session.query(PropertyListing.property_type).distinct().all()
     property_types = [p[0] for p in property_types]
-    
+
     return render_template('property_list.html', 
                           listings=listings, 
                           property_types=property_types,
@@ -383,16 +416,13 @@ def edit_property(property_id):
 def delete_property(property_id):
     property_listing = PropertyListing.query.get_or_404(property_id)
     
-    
     if property_listing.owner_id != current_user.id and current_user.role != 'admin':
         flash('You do not have permission to delete this property listing.', 'danger')
         return redirect(url_for('property_detail', property_id=property_id))
     
-    
     Appointment.query.filter_by(property_id=property_id).delete()
     Review.query.filter_by(property_id=property_id).delete()
     SavedListing.query.filter_by(property_id=property_id).delete()
-    
     
     db.session.delete(property_listing)
     db.session.commit()
@@ -565,7 +595,6 @@ def toggle_saved_listing(property_id):
     
     return redirect(url_for('property_detail', property_id=property_id))
 
-
 @app.route('/neighbourhood/<int:neighbourhood_id>')
 def neighbourhood_info(neighbourhood_id):
     neighbourhood = Neighbourhood.query.get_or_404(neighbourhood_id)
@@ -575,97 +604,295 @@ def neighbourhood_info(neighbourhood_id):
                           neighbourhood=neighbourhood, 
                           properties=properties)
 
-
 @app.route('/admin')
 @login_required
 @admin_required
 def admin_portal():
-    
-    stats = {
-        'users': User.query.count(),
-        'tenants': User.query.filter_by(role='tenant').count(),
-        'owners': User.query.filter_by(role='owner').count(),
-        'properties': PropertyListing.query.count(),
-        'appointments': Appointment.query.count(),
-        'reviews': Review.query.count(),
-        'neighbourhoods': Neighbourhood.query.count(),
-        "payments": Payment.query.count()
-    }
-    
+    stats = {}
+
+    with db.engine.connect() as connection:
+        stats['users'] = connection.execute(
+            text("SELECT COUNT(*) FROM app_user")
+        ).scalar()
+
+        stats['tenants'] = connection.execute(
+            text("SELECT COUNT(*) FROM app_user WHERE role = 'tenant'")
+        ).scalar()
+
+        stats['owners'] = connection.execute(
+            text("SELECT COUNT(*) FROM app_user WHERE role = 'owner'")
+        ).scalar()
+
+        stats['properties'] = connection.execute(
+            text("SELECT COUNT(*) FROM property_listing")
+        ).scalar()
+
+        stats['appointments'] = connection.execute(
+            text("SELECT COUNT(*) FROM appointment")
+        ).scalar()
+
+        stats['reviews'] = connection.execute(
+            text("SELECT COUNT(*) FROM review")
+        ).scalar()
+
+        stats['neighbourhoods'] = connection.execute(
+            text("SELECT COUNT(*) FROM neighbourhood")
+        ).scalar()
+
+        stats['payments'] = connection.execute(
+            text("SELECT COUNT(*) FROM payment")
+        ).scalar()
+
     return render_template('admin_portal.html', stats=stats)
 
 @app.route('/admin/users')
 @login_required
 @admin_required
 def admin_users():
-    users = User.query.all()
+    with db.engine.connect() as connection:
+        result = connection.execute(
+            text("""
+                SELECT id, username, email, role, first_name, last_name, phone, created_at
+                FROM app_user
+                ORDER BY created_at DESC
+            """)
+        )
+        users = [
+            {
+                "id": row[0],
+                "username": row[1],
+                "email": row[2],
+                "role": row[3],
+                "first_name": row[4],
+                "last_name": row[5],
+                "phone": row[6],
+                "created_at": row[7]
+            }
+            for row in result.fetchall()
+        ]
+
     return render_template('admin_users.html', users=users)
 
 @app.route('/admin/properties')
 @login_required
 @admin_required
 def admin_properties():
-    properties = PropertyListing.query.all()
+    with db.engine.connect() as connection:
+        result = connection.execute(
+            text("""
+                SELECT p.id, p.owner_id, u.username AS owner_username, p.title, p.description, p.address,
+                       p.city, p.state, p.zip_code, p.price, p.bedrooms,
+                       p.bathrooms, p.area_sqft, p.property_type,
+                       p.image_urls, p.is_available, p.available_from,
+                       p.amenities, p.created_at, p.updated_at, p.neighbourhood_id
+                FROM property_listing p
+                JOIN app_user u ON p.owner_id = u.id
+                ORDER BY p.created_at DESC
+            """)
+        )
+        properties = [
+            dict(zip(result.keys(), row))
+            for row in result.fetchall()
+        ]
+
+    class AttrDict(dict):
+        def __getattr__(self, key):
+            return self[key] if key in self else None
+        def __getitem__(self, key):
+            return super().get(key)
+
+    properties = [AttrDict({**p, 'owner': {'username': p.get('owner_username')}}) for p in properties]
+
     return render_template('admin_properties.html', properties=properties)
 
 @app.route('/admin/appointments')
 @login_required
 @admin_required
 def admin_appointments():
-    appointments = Appointment.query.all()
+    with db.engine.connect() as connection:
+        result = connection.execute(
+            text("""
+                SELECT id, "date", time, status, message,
+                       created_at, property_id, tenant_id
+                FROM appointment
+                ORDER BY created_at DESC
+            """)
+        )
+        rows = result.fetchall()
+        keys = result.keys()
+    
+    appointments = [dict(zip(keys, row)) for row in rows]
+
+    for appt in appointments:
+        appt_obj = Appointment.query.get(appt['id'])
+        appt['property'] = appt_obj.property
+        appt['tenant'] = appt_obj.tenant
+        appt['property'].owner = appt_obj.property.owner
+
     return render_template('admin_appointments.html', appointments=appointments)
 
 @app.route('/admin/reviews')
 @login_required
 @admin_required
 def admin_reviews():
-    reviews = Review.query.all()
+    with db.engine.connect() as connection:
+        result = connection.execute(
+            text("""
+                SELECT id, rating, "comment", created_at, 
+                       property_id, tenant_id
+                FROM review
+                ORDER BY created_at DESC
+            """)
+        )
+        rows = result.fetchall()
+        keys = result.keys()
+
+    reviews = [dict(zip(keys, row)) for row in rows]
+
+    for review in reviews:
+        review_obj = Review.query.get(review['id'])
+        review['property'] = review_obj.property
+        review['tenant'] = review_obj.tenant
+
     return render_template('admin_reviews.html', reviews=reviews)
 
-@app.route('/admin/neighbourhoods')
+@app.route('/admin/neighbourhoods', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def admin_neighbourhoods():
-    neighbourhoods = Neighbourhood.query.all()
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form.get('description', '')
+        safety_rating = float(request.form.get('safety_rating', 0))
+        schools_rating = float(request.form.get('schools_rating', 0))
+        transportation_rating = float(request.form.get('transportation_rating', 0))
+        shopping_rating = float(request.form.get('shopping_rating', 0))
+        dining_rating = float(request.form.get('dining_rating', 0))
+
+        with db.engine.begin() as conn:
+            conn.execute(text("""
+                UPDATE neighbourhood
+                SET description = :description,
+                    safety_rating = :safety_rating,
+                    schools_rating = :schools_rating,
+                    transportation_rating = :transportation_rating,
+                    shopping_rating = :shopping_rating,
+                    dining_rating = :dining_rating
+                WHERE name = :name
+            """), {
+                'name': name,
+                'description': description,
+                'safety_rating': safety_rating,
+                'schools_rating': schools_rating,
+                'transportation_rating': transportation_rating,
+                'shopping_rating': shopping_rating,
+                'dining_rating': dining_rating
+            })
+
+        flash(f"Neighbourhood '{name}' updated successfully!", 'success')
+        return redirect(url_for('admin_neighbourhoods'))
+
+    with db.engine.connect() as connection:
+        result = connection.execute(
+            text("""
+                SELECT id, name, description,
+                       safety_rating, schools_rating, 
+                       transportation_rating, shopping_rating, 
+                       dining_rating
+                FROM neighbourhood
+                ORDER BY id DESC
+            """)
+        )
+
+        class DummyNeighbourhood:
+            def __init__(self, **kwargs):
+                for key, value in kwargs.items():
+                    setattr(self, key, value)
+
+            def get_overall_rating(self):
+                return Neighbourhood.get_overall_rating(self)
+
+        neighbourhoods = [
+            DummyNeighbourhood(**dict(zip(result.keys(), row)))
+            for row in result.fetchall()
+        ]
+
     return render_template('admin_neighbourhoods.html', neighbourhoods=neighbourhoods)
 
 @app.route('/admin/payments')
 @login_required
 @admin_required
 def admin_payments():
-    payments = Payment.query.all()
+    with db.engine.connect() as connection:
+        result = connection.execute(text("""
+            SELECT 
+                p.id, p.amount, p.payment_type, p.status,
+                p.transaction_id, p.created_at,
+                p.user_id, p.property_id,
+                pl.title AS property_title,
+                u.first_name AS user_first_name,
+                u.last_name AS user_last_name,
+                u.email AS user_email,
+                u.username AS username
+            FROM payment p
+            JOIN property_listing pl ON p.property_id = pl.id
+            JOIN app_user u ON p.user_id = u.id
+            ORDER BY p.created_at DESC
+        """))
+
+        class DummyUser:
+            def __init__(self, first_name, last_name, email, username):
+                self.first_name = first_name
+                self.last_name = last_name
+                self.email = email
+                self.username = username
+
+        class DummyProperty:
+            def __init__(self, title):
+                self.title = title
+
+        class DummyPayment:
+            def __init__(self, row):
+                self.id = row.id
+                self.amount = row.amount
+                self.payment_type = row.payment_type
+                self.status = row.status
+                self.transaction_id = row.transaction_id
+                self.created_at = row.created_at
+                self.user_id = row.user_id
+                self.property_id = row.property_id
+                self.property_listing = DummyProperty(row.property_title)
+                self.user = DummyUser(
+                    row.user_first_name,
+                    row.user_last_name,
+                    row.user_email,
+                    row.username
+                )
+
+
+        payments = [DummyPayment(row) for row in result.fetchall()]
+
     return render_template('admin_payments.html', payments=payments)
 
 @app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
 @login_required
 @admin_required
 def admin_delete_user(user_id):
-    user = User.query.get_or_404(user_id)
-    
-    
-    if user.id == current_user.id:
+    user = db.session.execute(
+        text("SELECT * FROM app_user WHERE id = :uid"), {'uid': user_id}
+    ).fetchone()
+
+    if not user:
+        flash('User not found.', 'danger')
+        return redirect(url_for('admin_users'))
+
+    if user_id == current_user.id:
         flash('You cannot delete your own account.', 'danger')
         return redirect(url_for('admin_users'))
     
-    
-    if user.role == 'owner':
-        for property in user.properties:
-            
-            Appointment.query.filter_by(property_id=property.id).delete()
-            Review.query.filter_by(property_id=property.id).delete()
-            SavedListing.query.filter_by(property_id=property.id).delete()
-        
-        
-        PropertyListing.query.filter_by(owner_id=user.id).delete()
-    
-    
-    Appointment.query.filter_by(tenant_id=user.id).delete()
-    Review.query.filter_by(tenant_id=user.id).delete()
-    SavedListing.query.filter_by(user_id=user.id).delete()
-
-    db.session.delete(user)
+    db.session.execute(text("DELETE FROM app_user WHERE id = :uid"), {'uid': user_id})
     db.session.commit()
-    
+
     flash('User deleted successfully.', 'success')
     return redirect(url_for('admin_users'))
 
@@ -673,21 +900,41 @@ def admin_delete_user(user_id):
 @login_required
 @admin_required
 def delete_neighbourhood(neighbourhood_id):
-    neighbourhood = Neighbourhood.query.get_or_404(neighbourhood_id)
+    neighbourhood = db.session.execute(
+        text("SELECT * FROM neighbourhood WHERE id = :nid"), {'nid': neighbourhood_id}
+    ).fetchone()
 
-    properties = PropertyListing.query.filter_by(neighbourhood_id=neighbourhood.id).all()
-    for prop in properties:
-        Appointment.query.filter_by(property_id=prop.id).delete()
-        Review.query.filter_by(property_id=prop.id).delete()
-        SavedListing.query.filter_by(property_id=prop.id).delete()
-        db.session.delete(prop)
+    if not neighbourhood:
+        flash('Neighbourhood not found.', 'danger')
+        return redirect(url_for('admin_neighbourhoods'))
 
-    db.session.delete(neighbourhood)
+    db.session.execute(
+        text("DELETE FROM neighbourhood WHERE id = :nid"), {'nid': neighbourhood_id}
+    )
     db.session.commit()
 
     flash('Neighbourhood and associated properties deleted successfully!', 'success')
     return redirect(url_for('admin_neighbourhoods'))
 
+@app.route('/admin/delete_review/delete/<int:review_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_review(review_id):
+    review = db.session.execute(
+        text("SELECT * FROM review WHERE id = :rid"), {'rid': review_id}
+    ).fetchone()
+
+    if not review:
+        flash('Review not found.', 'danger')
+        return redirect(url_for('admin_reviews'))
+    
+    db.session.execute(
+        text("DELETE FROM review WHERE id = :rid"), {'rid': review_id}
+    )
+    db.session.commit()
+
+    flash('Review deleted successfully!', 'success')
+    return redirect(url_for('admin_reviews'))
 
 @app.route('/profile')
 @login_required

@@ -54,8 +54,8 @@ class PropertyListing(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    owner_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
-    neighbourhood_id = db.Column(db.Integer, db.ForeignKey('neighbourhood.id'))
+    owner_id = db.Column(db.Integer, db.ForeignKey('app_user.id', ondelete='CASCADE'), nullable=False)
+    neighbourhood_id = db.Column(db.Integer, db.ForeignKey('neighbourhood.id', ondelete='CASCADE'))
     
     appointments = db.relationship('Appointment', backref='property', lazy=True)
     reviews = db.relationship('Review', backref='property', lazy=True)
@@ -100,8 +100,8 @@ class Appointment(db.Model):
     message = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    property_id = db.Column(db.Integer, db.ForeignKey('property_listing.id', name='fk_appointment_property_id'), nullable=False)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
+    property_id = db.Column(db.Integer, db.ForeignKey('property_listing.id', name='fk_appointment_property_id', ondelete='CASCADE'), nullable=False)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('app_user.id', ondelete='CASCADE'), nullable=False)
 
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -109,8 +109,8 @@ class Review(db.Model):
     comment = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    property_id = db.Column(db.Integer, db.ForeignKey('property_listing.id', name='fk_review_property_id'), nullable=False)
-    tenant_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
+    property_id = db.Column(db.Integer, db.ForeignKey('property_listing.id', name='fk_review_property_id', ondelete='CASCADE'), nullable=False)
+    tenant_id = db.Column(db.Integer, db.ForeignKey('app_user.id', ondelete='CASCADE'), nullable=False)
 
 class Payment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -120,8 +120,8 @@ class Payment(db.Model):
     transaction_id = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
-    property_id = db.Column(db.Integer, db.ForeignKey('property_listing.id', name='fk_payment_property_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id', ondelete='CASCADE'), nullable=False)
+    property_id = db.Column(db.Integer, db.ForeignKey('property_listing.id', name='fk_payment_property_id', ondelete='CASCADE'), nullable=False)
     
     property_listing = db.relationship('PropertyListing')
 
@@ -129,5 +129,5 @@ class SavedListing(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'), nullable=False)
-    property_id = db.Column(db.Integer, db.ForeignKey('property_listing.id', name='fk_listing_property_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id', ondelete='CASCADE'), nullable=False)
+    property_id = db.Column(db.Integer, db.ForeignKey('property_listing.id', name='fk_listing_property_id', ondelete='CASCADE'), nullable=False)
